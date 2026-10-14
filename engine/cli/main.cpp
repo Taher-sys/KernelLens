@@ -16,6 +16,7 @@
 #include "kernellens/memory/paging_system.hpp"
 #include "kernellens/sync/banker.hpp"
 #include "kernellens/sync/resource_graph.hpp"
+#include "kernellens/disk/schedulers.hpp"
 
 using namespace kernellens;
 
@@ -179,6 +180,49 @@ int main(int argc, char* argv[]) {
       }
       return 0;
     }
+  }
+
+  if (module == "disk") {
+    std::unique_ptr<IDiskScheduler> disk_sched;
+    if (policy_str == "SSTF") {
+      disk_sched = std::make_unique<DiskSstfScheduler>();
+    } else if (policy_str == "SCAN") {
+      disk_sched = std::make_unique<DiskScanScheduler>();
+    } else if (policy_str == "C-SCAN" || policy_str == "CSCAN") {
+      disk_sched = std::make_unique<DiskCScanScheduler>();
+    } else if (policy_str == "LOOK") {
+      disk_sched = std::make_unique<DiskLookScheduler>();
+    } else if (policy_str == "C-LOOK" || policy_str == "CLOOK") {
+      disk_sched = std::make_unique<DiskCLookScheduler>();
+    } else {
+      disk_sched = std::make_unique<DiskFcfsScheduler>();
+    }
+
+    std::vector<std::uint32_t> requests = {98, 183, 37, 122, 14, 124, 65, 67};
+    std::uint32_t initial_head = 53;
+    std::uint32_t max_cyl = 199;
+    HeadDirection dir = HeadDirection::Up;
+
+    EventLog log("disk-" + policy_str);
+    auto res = disk_sched->schedule(initial_head, dir, max_cyl, requests, &log);
+
+    if (format == "json") {
+      std::cout << "{\"events\":" << log.to_json()
+                << ",\"result\":" << res.to_json() << "}\n";
+    } else {
+      std::cout << "========================================================\n"
+                << " KernelLens Disk Scheduling: " << policy_str << "\n"
+                << "========================================================\n"
+                << " Initial Head Position:  " << initial_head << "\n"
+                << " Total Seek Distance:    " << res.total_seek_distance << " cylinders\n"
+                << " Service Order:          ";
+      for (std::size_t i = 0; i < res.service_order.size(); ++i) {
+        if (i > 0) std::cout << " -> ";
+        std::cout << res.service_order[i];
+      }
+      std::cout << "\n========================================================\n";
+    }
+    return 0;
   }
 
   std::unique_ptr<IScheduler> scheduler;
