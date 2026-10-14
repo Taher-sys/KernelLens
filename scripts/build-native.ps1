@@ -59,4 +59,11 @@ $TestFiles = @(
 )
 & $Compiler -std=c++17 -Wall -Wextra -O2 $IncludeDir -Itests $SrcFiles $TestFiles -o "build/bin/kernellens_tests.exe"
 
-Write-Host "Build complete! Executables located in build/bin/"
+if (-not (Test-Path "benchmarks/results")) {
+  New-Item -ItemType Directory -Force -Path "benchmarks/results" | Out-Null
+}
+
+Write-Host "Building benchmark suite..."
+& $Compiler -std=c++17 -Wall -Wextra -O2 $IncludeDir $SrcFiles "benchmarks/benchmark_main.cpp" -o "build/bin/kernellens_benchmarks.exe"
+
+Write-Host "Build complete! Executables located in build/bin/ (kernellens.exe, kernellens_tests.exe, kernellens_benchmarks.exe)"
