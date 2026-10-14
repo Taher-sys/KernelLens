@@ -23,7 +23,10 @@ $SrcFiles = @(
   "engine/src/cpu/cfs_like.cpp",
   "engine/src/workload/presets.cpp",
   "engine/src/memory/replacers.cpp",
-  "engine/src/memory/paging_system.cpp"
+  "engine/src/memory/paging_system.cpp",
+  "engine/src/sync/semaphore.cpp",
+  "engine/src/sync/resource_graph.cpp",
+  "engine/src/sync/banker.cpp"
 )
 
 if (-not (Test-Path "build/bin")) {
@@ -40,8 +43,10 @@ $TestFiles = @(
   "tests/unit/test_schedulers.cpp",
   "tests/unit/test_metrics.cpp",
   "tests/unit/test_memory.cpp",
+  "tests/unit/test_sync.cpp",
   "tests/golden/test_golden_cpu.cpp",
-  "tests/golden/test_golden_memory.cpp"
+  "tests/golden/test_golden_memory.cpp",
+  "tests/golden/test_golden_sync.cpp"
 )
 & $Compiler -std=c++17 -Wall -Wextra -O2 $IncludeDir -Itests $SrcFiles $TestFiles -o "build/bin/kernellens_tests.exe"
 

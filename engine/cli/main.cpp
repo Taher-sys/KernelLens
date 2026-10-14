@@ -14,6 +14,8 @@
 
 #include "kernellens/memory/replacers.hpp"
 #include "kernellens/memory/paging_system.hpp"
+#include "kernellens/sync/banker.hpp"
+#include "kernellens/sync/resource_graph.hpp"
 
 using namespace kernellens;
 
@@ -110,6 +112,73 @@ int main(int argc, char* argv[]) {
                 << "========================================================\n";
     }
     return 0;
+  }
+
+  if (module == "sync") {
+    if (policy_str == "BANKER") {
+      EventLog log("sync-banker");
+      BankersAlgorithm banker(5, 3, &log);
+      banker.set_available({3, 3, 2});
+      banker.set_allocation(0, {0, 1, 0});
+      banker.set_allocation(1, {2, 0, 0});
+      banker.set_allocation(2, {3, 0, 2});
+      banker.set_allocation(3, {2, 1, 1});
+      banker.set_allocation(4, {0, 0, 2});
+      banker.set_maximum(0, {7, 5, 3});
+      banker.set_maximum(1, {3, 2, 2});
+      banker.set_maximum(2, {9, 0, 2});
+      banker.set_maximum(3, {2, 2, 2});
+      banker.set_maximum(4, {4, 3, 3});
+
+      auto safety = banker.check_safety();
+      auto req = banker.request_resources(1, {1, 0, 2}, 5);
+
+      if (format == "json") {
+        std::cout << "{\"events\":" << log.to_json()
+                  << ",\"safety\":" << safety.to_json()
+                  << ",\"request\":" << req.to_json() << "}\n";
+      } else {
+        std::cout << "========================================================\n"
+                  << " KernelLens Banker's Algorithm Simulation\n"
+                  << "========================================================\n"
+                  << " " << safety.explanation << "\n"
+                  << " Evaluating Request from P1: [1, 0, 2]\n"
+                  << " Decision: " << (req.granted ? "GRANTED" : "DENIED") << "\n"
+                  << " Details:  " << req.reason << "\n"
+                  << "========================================================\n";
+      }
+      return 0;
+    } else {
+      // RAG Deadlock Cycle Detection demo
+      EventLog log("sync-rag");
+      ResourceAllocationGraph rag(&log);
+      rag.add_request_edge("P1", "R1", 1);
+      rag.add_assignment_edge("R1", "P2", 2);
+      rag.add_request_edge("P2", "R2", 3);
+      rag.add_assignment_edge("R2", "P1", 4);
+
+      auto report = rag.detect_deadlock(5);
+      if (format == "json") {
+        std::cout << "{\"events\":" << log.to_json()
+                  << ",\"report\":" << report.to_json() << "}\n";
+      } else {
+        std::cout << "========================================================\n"
+                  << " KernelLens Resource Allocation Graph (RAG) Analysis\n"
+                  << "========================================================\n"
+                  << " Deadlock Detected: " << (report.has_deadlock ? "YES" : "NO") << "\n"
+                  << " Detected Cycles:   " << report.cycles.size() << "\n";
+        for (const auto& c : report.cycles) {
+          std::cout << "  Cycle: ";
+          for (std::size_t i = 0; i < c.size(); ++i) {
+            if (i > 0) std::cout << " -> ";
+            std::cout << c[i];
+          }
+          std::cout << "\n";
+        }
+        std::cout << "========================================================\n";
+      }
+      return 0;
+    }
   }
 
   std::unique_ptr<IScheduler> scheduler;
