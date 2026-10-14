@@ -28,7 +28,10 @@ $SrcFiles = @(
   "engine/src/sync/resource_graph.cpp",
   "engine/src/sync/banker.cpp",
   "engine/src/disk/schedulers.cpp",
-  "engine/src/workload/generator.cpp"
+  "engine/src/workload/generator.cpp",
+  "engine/src/memory/allocator.cpp",
+  "engine/src/filesystem/filesystem.cpp",
+  "engine/src/filesystem/journal.cpp"
 )
 
 if (-not (Test-Path "build/bin")) {
@@ -47,6 +50,8 @@ $TestFiles = @(
   "tests/unit/test_memory.cpp",
   "tests/unit/test_sync.cpp",
   "tests/unit/test_disk.cpp",
+  "tests/unit/test_allocator.cpp",
+  "tests/unit/test_filesystem.cpp",
   "tests/golden/test_golden_cpu.cpp",
   "tests/golden/test_golden_memory.cpp",
   "tests/golden/test_golden_sync.cpp",
