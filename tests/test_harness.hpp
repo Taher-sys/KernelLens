@@ -32,15 +32,16 @@ public:
               << "=========================================\n";
 
     for (const auto& test : tests_) {
+      std::cout << "Running test: " << test.name << "..." << std::endl;
       try {
         test.func();
-        std::cout << " [PASS] " << test.name << "\n";
+        std::cout << " [PASS] " << test.name << std::endl;
         passed++;
       } catch (const std::exception& e) {
-        std::cout << " [FAIL] " << test.name << " — Error: " << e.what() << "\n";
+        std::cout << " [FAIL] " << test.name << " — Error: " << e.what() << std::endl;
         failed++;
       } catch (...) {
-        std::cout << " [FAIL] " << test.name << " — Unknown exception\n";
+        std::cout << " [FAIL] " << test.name << " — Unknown exception" << std::endl;
         failed++;
       }
     }
@@ -49,7 +50,7 @@ public:
               << " Total: " << tests_.size()
               << " | Passed: " << passed
               << " | Failed: " << failed << "\n"
-              << "=========================================\n\n";
+              << "=========================================\n" << std::endl;
     return failed == 0 ? 0 : 1;
   }
 

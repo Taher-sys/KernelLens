@@ -12,6 +12,9 @@
 #include <memory>
 #include <iomanip>
 
+#include "kernellens/memory/replacers.hpp"
+#include "kernellens/memory/paging_system.hpp"
+
 using namespace kernellens;
 
 void print_help() {
@@ -57,6 +60,56 @@ int main(int argc, char* argv[]) {
     } else if (arg == "--preemptive") {
       preemptive = true;
     }
+  }
+
+  if (module == "memory") {
+    std::unique_ptr<IPageReplacer> replacer;
+    if (policy_str == "FIFO") {
+      replacer = std::make_unique<FifoReplacer>();
+    } else if (policy_str == "LRU") {
+      replacer = std::make_unique<LruReplacer>();
+    } else if (policy_str == "OPTIMAL") {
+      replacer = std::make_unique<OptimalReplacer>();
+    } else if (policy_str == "CLOCK") {
+      replacer = std::make_unique<ClockReplacer>();
+    } else {
+      replacer = std::make_unique<FifoReplacer>();
+    }
+
+    std::vector<std::uint32_t> refs;
+    if (preset_str == "belady") {
+      refs = {1, 2, 3, 4, 1, 2, 5, 1, 2, 3, 4, 5};
+    } else {
+      refs = {7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 2, 1, 2, 0, 1, 7, 0, 1};
+    }
+
+    std::size_t num_frames = static_cast<std::size_t>(quantum); // Use quantum arg for frame count
+    if (num_frames == 0) num_frames = 3;
+
+    EventLog log("mem-" + policy_str);
+    PagingSystem paging(num_frames, std::move(replacer), 4, &log);
+
+    for (std::size_t i = 0; i < refs.size(); ++i) {
+      paging.access(static_cast<Tick>(i), refs[i], i, refs);
+    }
+
+    const auto& m = paging.metrics();
+    if (format == "json") {
+      std::cout << "{\"events\":" << log.to_json()
+                << ",\"metrics\":" << m.to_json() << "}\n";
+    } else {
+      std::cout << "========================================================\n"
+                << " KernelLens Memory Simulation: " << policy_str << " (" << num_frames << " frames)\n"
+                << "========================================================\n"
+                << " Total Accesses:     " << m.total_accesses << "\n"
+                << " Page Faults:        " << m.page_faults << "\n"
+                << " Fault Rate:         " << std::fixed << std::setprecision(2) << (m.fault_rate * 100.0) << " %\n"
+                << " TLB Hits:           " << m.tlb_hits << "\n"
+                << " TLB Misses:         " << m.tlb_misses << "\n"
+                << " TLB Hit Rate:       " << std::fixed << std::setprecision(2) << (m.tlb_hit_rate * 100.0) << " %\n"
+                << "========================================================\n";
+    }
+    return 0;
   }
 
   std::unique_ptr<IScheduler> scheduler;
