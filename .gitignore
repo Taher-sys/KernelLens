@@ -1,0 +1,54 @@
+# Build and binary directories
+build/
+build-*/
+bin/
+lib/
+out/
+dist/
+*.exe
+*.o
+*.obj
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+
+# CMake artifacts
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CTestTestfile.cmake
+compile_commands.json
+
+# WebAssembly & Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/public/wasm/*.wasm
+frontend/public/wasm/*.js
+*.wasm
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosv
+*.sln
+*.vcxproj
+*.vcxproj.filters
+
+# Python / Scripts
+__pycache__/
+*.pyc
+
+# Operating System files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs & temp files
+*.log
+scratch/
+tmp/
