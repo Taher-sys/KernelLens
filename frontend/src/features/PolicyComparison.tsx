@@ -29,6 +29,11 @@ const ALL_POLICIES: PolicyConfig[] = [
 ];
 
 const PRESETS: Record<string, { name: string; description: string; workload: ProcessSpec[] }> = {
+  empty: {
+    name: 'Unloaded (Empty)',
+    description: 'No simulation is loaded.',
+    workload: []
+  },
   convoy: {
     name: 'Convoy Effect (Silberschatz)',
     description: 'One CPU-hog process (burst=24) arrives first, blocking two short processes (burst=3). Demonstrates severe FCFS convoy effect.',
@@ -388,13 +393,20 @@ export const PolicyComparison: React.FC = () => {
         </div>
       </div>
 
-      {/* Best-in-Class Delta Winner Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
-        <div className="card" style={{ borderLeft: '4px solid #00f2fe' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-            <Trophy size={14} color="#00f2fe" />
-            <span>LOWEST WAITING TIME</span>
-          </div>
+      {/* Results or Empty State */}
+      {workload.length === 0 ? (
+        <div className="card" style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.95rem', fontStyle: 'italic' }}>
+          No simulation is loaded.
+        </div>
+      ) : (
+        <>
+          {/* Best-in-Class Delta Winner Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+            <div className="card" style={{ borderLeft: '4px solid #00f2fe' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                <Trophy size={14} color="#00f2fe" />
+                <span>LOWEST WAITING TIME</span>
+              </div>
           <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', marginTop: 4 }}>
             {bestWaiting?.metrics.averages.waitingTime.toFixed(2)} <span style={{ fontSize: '0.8rem', color: 'var(--text-subtle)' }}>ticks</span>
           </div>
@@ -525,6 +537,8 @@ export const PolicyComparison: React.FC = () => {
           </tbody>
         </table>
       </div>
+    </>
+  )}
     </div>
   );
 };

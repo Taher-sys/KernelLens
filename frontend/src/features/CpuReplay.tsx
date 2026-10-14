@@ -212,6 +212,7 @@ export const CpuReplay: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>Workload:</span>
           {[
+            { name: 'Unloaded (Empty)', data: [] },
             { name: 'Convoy Effect', data: PRESET_CONVOY },
             { name: 'SJF Benchmark', data: PRESET_SJF },
             { name: 'Starvation', data: PRESET_STARVATION },
@@ -314,7 +315,13 @@ export const CpuReplay: React.FC = () => {
 
           {/* D3 Canvas Container */}
           <div style={{ width: '100%', overflowX: 'auto', background: 'rgba(5, 8, 14, 0.6)', borderRadius: 'var(--radius-md)', padding: 10 }}>
-            <svg ref={svgRef} style={{ width: '100%', height: 'auto', display: 'block' }}></svg>
+            {workload.length === 0 ? (
+              <div style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem', fontStyle: 'italic' }}>
+                No simulation is loaded.
+              </div>
+            ) : (
+              <svg ref={svgRef} style={{ width: '100%', height: 'auto', display: 'block' }}></svg>
+            )}
           </div>
 
           {/* Time Scrubber & Replay Controls */}
@@ -390,49 +397,55 @@ export const CpuReplay: React.FC = () => {
               Quantitative Metrics
             </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div style={{ background: 'rgba(255,255,255,0.03)', padding: 12, borderRadius: 'var(--radius-md)' }}>
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-subtle)', textTransform: 'uppercase' }}>Avg Waiting</span>
-                <p className="mono-val" style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', marginTop: 4 }}>
-                  {simResult.metrics.averages.waitingTime.toFixed(2)} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)' }}>t</span>
-                </p>
+            {workload.length === 0 ? (
+              <div style={{ padding: '24px 10px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', fontStyle: 'italic' }}>
+                No simulation is loaded.
               </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={{ background: 'rgba(255,255,255,0.03)', padding: 12, borderRadius: 'var(--radius-md)' }}>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-subtle)', textTransform: 'uppercase' }}>Avg Waiting</span>
+                  <p className="mono-val" style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', marginTop: 4 }}>
+                    {simResult.metrics.averages.waitingTime.toFixed(2)} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)' }}>t</span>
+                  </p>
+                </div>
 
-              <div style={{ background: 'rgba(255,255,255,0.03)', padding: 12, borderRadius: 'var(--radius-md)' }}>
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-subtle)', textTransform: 'uppercase' }}>Avg Turnaround</span>
-                <p className="mono-val" style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', marginTop: 4 }}>
-                  {simResult.metrics.averages.turnaroundTime.toFixed(2)} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)' }}>t</span>
-                </p>
-              </div>
+                <div style={{ background: 'rgba(255,255,255,0.03)', padding: 12, borderRadius: 'var(--radius-md)' }}>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-subtle)', textTransform: 'uppercase' }}>Avg Turnaround</span>
+                  <p className="mono-val" style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', marginTop: 4 }}>
+                    {simResult.metrics.averages.turnaroundTime.toFixed(2)} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)' }}>t</span>
+                  </p>
+                </div>
 
-              <div style={{ background: 'rgba(255,255,255,0.03)', padding: 12, borderRadius: 'var(--radius-md)' }}>
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-subtle)', textTransform: 'uppercase' }}>Avg Response</span>
-                <p className="mono-val" style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', marginTop: 4 }}>
-                  {simResult.metrics.averages.responseTime.toFixed(2)} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)' }}>t</span>
-                </p>
-              </div>
+                <div style={{ background: 'rgba(255,255,255,0.03)', padding: 12, borderRadius: 'var(--radius-md)' }}>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-subtle)', textTransform: 'uppercase' }}>Avg Response</span>
+                  <p className="mono-val" style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', marginTop: 4 }}>
+                    {simResult.metrics.averages.responseTime.toFixed(2)} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)' }}>t</span>
+                  </p>
+                </div>
 
-              <div style={{ background: 'rgba(255,255,255,0.03)', padding: 12, borderRadius: 'var(--radius-md)' }}>
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-subtle)', textTransform: 'uppercase' }}>CPU Utilization</span>
-                <p className="mono-val" style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--accent-emerald)', marginTop: 4 }}>
-                  {(simResult.metrics.cpuUtilization * 100).toFixed(1)} <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>%</span>
-                </p>
-              </div>
+                <div style={{ background: 'rgba(255,255,255,0.03)', padding: 12, borderRadius: 'var(--radius-md)' }}>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-subtle)', textTransform: 'uppercase' }}>CPU Utilization</span>
+                  <p className="mono-val" style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--accent-emerald)', marginTop: 4 }}>
+                    {(simResult.metrics.cpuUtilization * 100).toFixed(1)} <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>%</span>
+                  </p>
+                </div>
 
-              <div style={{ background: 'rgba(255,255,255,0.03)', padding: 12, borderRadius: 'var(--radius-md)' }}>
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-subtle)', textTransform: 'uppercase' }}>Throughput</span>
-                <p className="mono-val" style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', marginTop: 4 }}>
-                  {simResult.metrics.throughput.toFixed(3)} <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>proc/t</span>
-                </p>
-              </div>
+                <div style={{ background: 'rgba(255,255,255,0.03)', padding: 12, borderRadius: 'var(--radius-md)' }}>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-subtle)', textTransform: 'uppercase' }}>Throughput</span>
+                  <p className="mono-val" style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', marginTop: 4 }}>
+                    {simResult.metrics.throughput.toFixed(3)} <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>proc/t</span>
+                  </p>
+                </div>
 
-              <div style={{ background: 'rgba(255,255,255,0.03)', padding: 12, borderRadius: 'var(--radius-md)' }}>
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-subtle)', textTransform: 'uppercase' }}>Jain Fairness</span>
-                <p className="mono-val" style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--primary-cyan)', marginTop: 4 }}>
-                  {simResult.metrics.jainFairness !== null ? simResult.metrics.jainFairness.toFixed(3) : '1.000'}
-                </p>
+                <div style={{ background: 'rgba(255,255,255,0.03)', padding: 12, borderRadius: 'var(--radius-md)' }}>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-subtle)', textTransform: 'uppercase' }}>Jain Fairness</span>
+                  <p className="mono-val" style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--primary-cyan)', marginTop: 4 }}>
+                    {simResult.metrics.jainFairness !== null ? simResult.metrics.jainFairness.toFixed(3) : '1.000'}
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Process Breakdown Table */}
@@ -440,28 +453,34 @@ export const CpuReplay: React.FC = () => {
             <h3 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: 12, color: 'var(--text-muted)' }}>
               Per-Process Metrics
             </h3>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
-              <thead>
-                <tr style={{ color: 'var(--text-subtle)', borderBottom: '1px solid var(--border-subtle)', textAlign: 'left' }}>
-                  <th style={{ padding: '6px 4px' }}>PID</th>
-                  <th style={{ padding: '6px 4px' }}>Wait</th>
-                  <th style={{ padding: '6px 4px' }}>Turn</th>
-                  <th style={{ padding: '6px 4px' }}>Resp</th>
-                  <th style={{ padding: '6px 4px' }}>CPU</th>
-                </tr>
-              </thead>
-              <tbody>
-                {simResult.metrics.perProcess.map(pm => (
-                  <tr key={pm.pid} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                    <td style={{ padding: '8px 4px', fontWeight: 700, color: 'var(--primary-cyan)' }}>P{pm.pid}</td>
-                    <td className="mono-val" style={{ padding: '8px 4px' }}>{pm.waitingTime}</td>
-                    <td className="mono-val" style={{ padding: '8px 4px' }}>{pm.turnaroundTime}</td>
-                    <td className="mono-val" style={{ padding: '8px 4px' }}>{pm.responseTime}</td>
-                    <td className="mono-val" style={{ padding: '8px 4px' }}>{pm.cpuService}</td>
+            {workload.length === 0 ? (
+              <div style={{ padding: '24px 10px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', fontStyle: 'italic' }}>
+                No simulation is loaded.
+              </div>
+            ) : (
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
+                <thead>
+                  <tr style={{ color: 'var(--text-subtle)', borderBottom: '1px solid var(--border-subtle)', textAlign: 'left' }}>
+                    <th style={{ padding: '6px 4px' }}>PID</th>
+                    <th style={{ padding: '6px 4px' }}>Wait</th>
+                    <th style={{ padding: '6px 4px' }}>Turn</th>
+                    <th style={{ padding: '6px 4px' }}>Resp</th>
+                    <th style={{ padding: '6px 4px' }}>CPU</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {simResult.metrics.perProcess.map(pm => (
+                    <tr key={pm.pid} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                      <td style={{ padding: '8px 4px', fontWeight: 700, color: 'var(--primary-cyan)' }}>P{pm.pid}</td>
+                      <td className="mono-val" style={{ padding: '8px 4px' }}>{pm.waitingTime}</td>
+                      <td className="mono-val" style={{ padding: '8px 4px' }}>{pm.turnaroundTime}</td>
+                      <td className="mono-val" style={{ padding: '8px 4px' }}>{pm.responseTime}</td>
+                      <td className="mono-val" style={{ padding: '8px 4px' }}>{pm.cpuService}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>
