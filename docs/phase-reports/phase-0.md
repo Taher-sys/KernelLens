@@ -3,7 +3,7 @@
 **Course:** Operating Systems Lab (AID20090), Third Year CSE / AI-DS, Semester V, 2026–27  
 **Project:** KernelLens — Deterministic Discrete-Event OS Simulation Laboratory  
 **Document:** `docs/phase-reports/phase-0.md`  
-**Status:** Approved & Frozen for Phase 0  
+**Status:** Approved & Frozen for Phase 0 — Retrospective audit completed 2026-10-14  
 
 ---
 
@@ -143,8 +143,49 @@ kernellens/
 - [docs/risk-register.md](file:///c:/Users/taher/.gemini/antigravity/scratch/KernelLens/docs/risk-register.md): Risk mitigation and scope cut-order matrix.
 - [docs/phase-reports/phase-0.md](file:///c:/Users/taher/.gemini/antigravity/scratch/KernelLens/docs/phase-reports/phase-0.md): This verification report.
 
-### Unresolved Assumptions & Design Decisions
+### Unresolved Assumptions & Design Decisions (Phase 0 Initial)
 1. **Context Switch Overhead:** Context-switch ticks are treated as separate non-work overhead states and do not count toward useful CPU utilization.
 2. **Jain's Fairness Index Calculation:** Computed solely across processes concurrently active and runnable during an observation window to avoid distorting scores across unequal batch jobs.
 3. **WASM vs Direct Client Bridge:** Full WASM build supported; client simulation bridge in TypeScript strictly mirrors C++17 discrete-event semantics to guarantee in-browser self-contained execution without external server requirements.
 4. **Filesystem Scope (Tier 2):** Inode filesystem is an educational in-memory model designed for visualizing allocation structures and WAL crash injection; it does not aim to implement a full POSIX-compliant file system.
+
+---
+
+## 7. Architecture Decision Records (ADRs)
+
+Four foundational architectural decisions were codified in [`docs/adrs.md`](../adrs.md) during Phase 0 planning. Each ADR records context, decision, consequences, and alternatives rejected.
+
+| ADR | Title | Status |
+| :--- | :--- | :--- |
+| **ADR-01** | Native-First Execution with Optional WebAssembly Bridge | Accepted |
+| **ADR-02** | D3.js as the Mandatory Visualization Library | Accepted |
+| **ADR-03** | Event Replay via Immutable Event Log with Periodic Snapshots | Accepted |
+| **ADR-04** | Explicit Seeded PRNG for Deterministic Workload Generation | Accepted |
+
+**ADR-01** locks the CMake-native build as the source of truth for all algorithm correctness; WASM is a secondary compilation target over the same sources. **ADR-02** mandates D3.js v7 for all six animated visualizations (Gantt, frame grid, RAG, disk trajectory, TLB lanes, comparison bars) — no substitution permitted. **ADR-03** establishes the periodic-snapshot + forward-delta replay model (K=50) that powers UI scrubbing. **ADR-04** mandates `std::mt19937_64` with caller-supplied seeds and bans `std::random_device` and wall-clock timestamps from simulation event payloads.
+
+---
+
+## 8. Phase 0 Retrospective Checklist (2026-10-14)
+
+All Phase 0 deliverables called for by the project brief have been verified as present and internally consistent.
+
+| Deliverable | File | Status |
+| :--- | :--- | :--- |
+| Architecture specification | `docs/architecture.md` | ✓ Complete |
+| Event schema (v1) + JSON examples | `docs/event-schema.md` | ✓ Complete |
+| Algorithm notes (all Tier 1 + Tier 2) | `docs/algorithm-notes.md` | ✓ Complete |
+| Complexity tables | `docs/complexity.md` | ✓ Complete |
+| Test plan (5-layer pyramid) | `docs/test-plan.md` | ✓ Complete |
+| Report outline | `docs/report-outline.md` | ✓ Complete |
+| Demo script (5-minute MVD) | `docs/demo-script.md` | ✓ Complete |
+| Risk register + cut-order | `docs/risk-register.md` | ✓ Complete |
+| Architecture Decision Records (4 ADRs) | `docs/adrs.md` | ✓ Complete |
+| Agent collaboration protocol | `AGENTS.md` | ✓ Complete |
+| C++ build & workflow conventions | `CLAUDE.md` | ✓ Complete |
+| Phase 0 report | `docs/phase-reports/phase-0.md` | ✓ This document |
+
+Scope line per original brief:
+- **Tier 1 (required):** CPU (×7), Virtual Memory (×4 + TLB), Sync (semaphores, RAG, Banker's), Disk (×6), Metrics engine.
+- **Tier 2 (committed):** Contiguous allocators (×3), inode FS, WAL journaling — all implemented in Phase 5.
+- **Tier 3 (stretch, deferred):** Linux `/proc` ingestion, ML burst predictor, multi-core scheduling — explicitly out of scope.

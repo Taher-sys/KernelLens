@@ -76,7 +76,15 @@ struct AutoRegister {
     } \
   } while (0)
 
+#define ASSERT_TRUE_MSG(cond, msg) \
+  do { \
+    if (!(cond)) { \
+      throw std::runtime_error(std::string("Assertion failed: ") + #cond + " (" + (msg) + ") at " + __FILE__ + ":" + std::to_string(__LINE__)); \
+    } \
+  } while (0)
+
 #define ASSERT_FALSE(cond) ASSERT_TRUE(!(cond))
+#define ASSERT_FALSE_MSG(cond, msg) ASSERT_TRUE_MSG(!(cond), msg)
 
 #define ASSERT_EQ(a, b) \
   do { \

@@ -4,9 +4,15 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --port 5173 --host",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:contract": "tsx src/tests/contract.test.ts",
+    "test:memory": "tsx src/tests/memory.test.ts",
+    "test:sync": "tsx src/tests/sync.test.ts",
+    "test:phase5": "tsx src/tests/phase5.test.ts",
+    "test:replay": "tsx src/tests/replay_bridge.test.ts",
+    "test": "npm run test:contract && npm run test:memory && npm run test:sync && npm run test:phase5 && npm run test:replay"
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -17,9 +23,11 @@
   },
   "devDependencies": {
     "@types/d3": "^7.4.3",
+    "@types/node": "^26.6.5",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
+    "tsx": "^4.23.15",
     "typescript": "^5.7.3",
     "vite": "^5.4.14"
   }

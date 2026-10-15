@@ -78,15 +78,36 @@ kernellens/
 ### Native C++ Engine
 
 ```bash
-# Configure and build
-cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
-cmake --build build --config Release
+# Build engine, test runner, and benchmarks
+powershell -ExecutionPolicy Bypass -File scripts/build-native.ps1
 
-# Run automated tests
-ctest --test-dir build --output-on-failure
+# Run automated tests (60/60 passing)
+powershell -ExecutionPolicy Bypass -File scripts/run-tests.ps1
 
-# Run the CLI
+# Run single policy simulation
 ./build/bin/kernellens --module cpu --policy ROUND_ROBIN --quantum 3 --preset convoy
+
+# Phase 8: Multi-Policy Comparison Engine
+./build/bin/kernellens --compare --module cpu --preset convoy
+./build/bin/kernellens --compare --module disk --format table
+./build/bin/kernellens --compare --module memory --preset belady --quantum 3
+
+# Phase 8: Deterministic Workload Generation & JSON File Execution
+./build/bin/kernellens --generate --dist bimodal --seed 42 --processes 5 --export-workload workload.json
+./build/bin/kernellens --module cpu --policy ROUND_ROBIN --workload-file workload.json
+
+# Phase 8: Deterministic Checkpoint Replay & Time-Travel Scrubbing (K=10)
+./build/bin/kernellens --replay --preset convoy --policy ROUND_ROBIN --checkpoint-interval 10 --scrub 0,3,6,9,30
+
+# Phase 9: Dynamic Memory Allocator, Buddy System & Compaction
+./build/bin/kernellens --module allocator --policy FIRST_FIT --compact
+./build/bin/kernellens --module allocator --policy BUDDY --format json
+./build/bin/kernellens --compare --module allocator --capacity 1024
+
+# Phase 10: Ext2-Style Hierarchical Filesystem & Journal Crash Recovery
+./build/bin/kernellens --module filesystem
+./build/bin/kernellens --module fs --fs-strategy CONTIGUOUS
+./build/bin/kernellens --module fs --format json
 ```
 
 ### Frontend UI

@@ -290,4 +290,106 @@ void SimulationEngine::run() {
   metrics_ = MetricsCalculator::compute(processes_, clock_.now(), context_switch_count_, config_.context_switch_cost);
 }
 
+EngineSnapshot SimulationEngine::take_snapshot() const {
+  EngineSnapshot snap;
+  snap.tick = clock_.now();
+  snap.seq = log_.events().empty() ? 0 : log_.events().back().seq;
+  snap.running_pid = running_pid_;
+  snap.ready_pids = ready_pids_;
+  snap.context_switch_count = context_switch_count_;
+
+  for (const auto& pr : processes_) {
+    ProcessSnapshot ps;
+    ps.pid = pr.spec.pid;
+    ps.state = pr.state;
+    ps.burst_index = pr.burst_index;
+    ps.remaining_current_burst = pr.remaining_current_burst;
+    ps.cpu_service = pr.cpu_service;
+    ps.ready_wait = pr.ready_wait;
+    ps.first_run_time = pr.first_run_time;
+    ps.finish_time = pr.finish_time;
+    ps.last_ready_time = pr.last_ready_time;
+    ps.current_priority = pr.current_priority;
+    snap.processes.push_back(ps);
+
+    if (pr.state == ProcessState::Terminated) {
+      snap.terminated_pids.push_back(pr.spec.pid);
+    }
+  }
+
+  return snap;
+}
+
+std::string EngineSnapshot::to_json() const {
+  std::ostringstream ss;
+  ss << "{"
+     << "\"tick\":" << tick << ","
+     << "\"seq\":" << seq << ",";
+  if (running_pid.has_value()) {
+    ss << "\"runningPid\":" << *running_pid << ",";
+  } else {
+    ss << "\"runningPid\":null,";
+  }
+  ss << "\"contextSwitches\":" << context_switch_count << ","
+     << "\"readyPids\":[";
+  for (std::size_t i = 0; i < ready_pids.size(); ++i) {
+    if (i > 0) ss << ",";
+    ss << ready_pids[i];
+  }
+  ss << "],"
+     << "\"terminatedPids\":[";
+  for (std::size_t i = 0; i < terminated_pids.size(); ++i) {
+    if (i > 0) ss << ",";
+    ss << terminated_pids[i];
+  }
+  ss << "],"
+     << "\"processes\":[";
+  for (std::size_t i = 0; i < processes.size(); ++i) {
+    if (i > 0) ss << ",";
+    const auto& p = processes[i];
+    std::string st = "NEW";
+    switch (p.state) {
+      case ProcessState::Ready: st = "READY"; break;
+      case ProcessState::Running: st = "RUNNING"; break;
+      case ProcessState::Waiting: st = "WAITING"; break;
+      case ProcessState::Terminated: st = "TERMINATED"; break;
+      default: break;
+    }
+    ss << "{"
+       << "\"pid\":" << p.pid << ","
+       << "\"state\":\"" << st << "\","
+       << "\"burstIndex\":" << p.burst_index << ","
+       << "\"remainingBurst\":" << p.remaining_current_burst << ","
+       << "\"cpuService\":" << p.cpu_service << ","
+       << "\"readyWait\":" << p.ready_wait << ","
+       << "\"firstRunTime\":" << p.first_run_time << ","
+       << "\"finishTime\":" << p.finish_time << ","
+       << "\"priority\":" << p.current_priority
+       << "}";
+  }
+  ss << "]}";
+  return ss.str();
+}
+
+bool EngineSnapshot::operator==(const EngineSnapshot& other) const {
+  if (tick != other.tick) return false;
+  if (running_pid != other.running_pid) return false;
+  if (ready_pids != other.ready_pids) return false;
+  if (terminated_pids != other.terminated_pids) return false;
+  if (context_switch_count != other.context_switch_count) return false;
+  if (processes.size() != other.processes.size()) return false;
+  for (std::size_t i = 0; i < processes.size(); ++i) {
+    const auto& a = processes[i];
+    const auto& b = other.processes[i];
+    if (a.pid != b.pid || a.state != b.state || a.burst_index != b.burst_index ||
+        a.remaining_current_burst != b.remaining_current_burst ||
+        a.cpu_service != b.cpu_service || a.ready_wait != b.ready_wait ||
+        a.first_run_time != b.first_run_time || a.finish_time != b.finish_time ||
+        a.current_priority != b.current_priority) {
+      return false;
+    }
+  }
+  return true;
+}
+
 } // namespace kernellens

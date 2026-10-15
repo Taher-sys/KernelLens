@@ -31,7 +31,9 @@ $SrcFiles = @(
   "engine/src/workload/generator.cpp",
   "engine/src/memory/allocator.cpp",
   "engine/src/filesystem/filesystem.cpp",
-  "engine/src/filesystem/journal.cpp"
+  "engine/src/filesystem/journal.cpp",
+  "engine/src/core/comparator.cpp",
+  "engine/src/core/replay_engine.cpp"
 )
 
 if (-not (Test-Path "build/bin")) {
@@ -51,11 +53,18 @@ $TestFiles = @(
   "tests/unit/test_sync.cpp",
   "tests/unit/test_disk.cpp",
   "tests/unit/test_allocator.cpp",
+  "tests/unit/test_buddy_allocator.cpp",
   "tests/unit/test_filesystem.cpp",
   "tests/golden/test_golden_cpu.cpp",
   "tests/golden/test_golden_memory.cpp",
   "tests/golden/test_golden_sync.cpp",
-  "tests/golden/test_golden_disk.cpp"
+  "tests/golden/test_golden_disk.cpp",
+  "tests/golden/test_golden_comparison.cpp",
+  "tests/golden/test_golden_allocator.cpp",
+  "tests/golden/test_golden_filesystem.cpp",
+  "tests/unit/test_workload_generator.cpp",
+  "tests/unit/test_comparator.cpp",
+  "tests/unit/test_replay.cpp"
 )
 & $Compiler -std=c++17 -Wall -Wextra -O2 $IncludeDir -Itests $SrcFiles $TestFiles -o "build/bin/kernellens_tests.exe"
 

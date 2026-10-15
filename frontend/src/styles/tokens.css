@@ -47,4 +47,22 @@
   --duration-fast:    120ms; /* Playhead stepping, cell updates, hover states */
   --duration-state:   200ms; /* Frame allocation shifts, edge creations, row swaps */
   --duration-sweep:   350ms; /* Full-range disk-head sweep, macro-scrub interpolations */
+
+  /* Semantic Process State Colors (docs/ux-system.md Section 2.1) */
+  --state-new:          #4A5568; /* Initialized, waiting admission */
+  --state-ready:        #2B6CB0; /* Enqueued in run queue */
+  --state-ready-stroke: #1A365D;
+  --state-running:      #00A389; /* Actively consuming CPU */
+  --state-waiting:      #C05621; /* Blocked on I/O */
+  --state-blocked:      #C53030; /* Blocked on sync / mutex / deadlock */
+  --state-terminated:   #1A202C; /* Completed execution */
+  --state-terminated-stroke: #718096;
+
+  /* Telemetry & UI Diagnostics */
+  --telemetry-cyan:     #00F2FE; /* Playhead hairline & focus targets */
+  --telemetry-amber:    #D69E2E; /* Preemption warnings / degraded metrics */
+  --telemetry-emerald:  #38A169; /* Optimal results / safe states */
+  --telemetry-crimson:  #E53E3E; /* Page faults / deadlock cycle highlights */
+  --context-switch:     #4A5568; /* Context switch overhead bar */
 }
+

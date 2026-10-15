@@ -7,9 +7,12 @@ JournalingFileSystem::JournalingFileSystem(InodeFileSystem* fs, EventLog* log)
     : fs_(fs), log_(log) {}
 
 std::uint64_t JournalingFileSystem::begin_transaction(const std::string& op, const std::string& path,
-                                                      const std::string& data, Tick now) {
+                                                      const std::string& data,
+                                                      std::uint32_t perms,
+                                                      FileAllocationStrategy strategy,
+                                                      Tick now) {
   std::uint64_t tx_id = next_tx_id_++;
-  journal_.push_back({tx_id, op, path, data, TransactionState::Active});
+  journal_.push_back({tx_id, op, path, data, perms, strategy, TransactionState::Active});
 
   if (log_) {
     std::ostringstream ss;
@@ -30,11 +33,11 @@ bool JournalingFileSystem::commit_transaction(std::uint64_t tx_id, Tick now) {
       }
       // Apply transaction to filesystem
       if (record.operation == "CREATE_FILE") {
-        fs_->create_file(record.path, record.data, 0644, now);
+        fs_->create_file(record.path, record.data, record.perms, record.strategy, UserContext::root(), now);
       } else if (record.operation == "CREATE_DIR") {
-        fs_->create_directory(record.path, 0755, now);
+        fs_->create_directory(record.path, record.perms, UserContext::root(), now);
       } else if (record.operation == "DELETE_FILE") {
-        fs_->delete_file(record.path, now);
+        fs_->delete_file(record.path, UserContext::root(), now);
       }
       return true;
     }
@@ -69,15 +72,17 @@ RecoveryReport JournalingFileSystem::recover(Tick now) {
     if (r.state == TransactionState::Committed) {
       // REDO: ensure changes are applied to filesystem
       if (r.operation == "CREATE_FILE") {
-        fs_->create_file(r.path, r.data, 0644, now);
+        fs_->create_file(r.path, r.data, r.perms, r.strategy, UserContext::root(), now);
       } else if (r.operation == "CREATE_DIR") {
-        fs_->create_directory(r.path, 0755, now);
+        fs_->create_directory(r.path, r.perms, UserContext::root(), now);
       }
       report.redone_transactions++;
+      report.redone_tx_ids.push_back(r.tx_id);
     } else if (r.state == TransactionState::Active) {
       // UNDO / Discard uncommitted transaction
       r.state = TransactionState::Aborted;
       report.discarded_transactions++;
+      report.discarded_tx_ids.push_back(r.tx_id);
     }
   }
 
@@ -97,12 +102,46 @@ RecoveryReport JournalingFileSystem::recover(Tick now) {
   return report;
 }
 
+std::string JournalRecord::to_json() const {
+  std::ostringstream ss;
+  ss << "{"
+     << "\"txId\":" << tx_id << ","
+     << "\"op\":\"" << operation << "\","
+     << "\"path\":\"" << path << "\","
+     << "\"state\":\"" << to_string(state) << "\","
+     << "\"strategy\":\"" << to_string(strategy) << "\""
+     << "}";
+  return ss.str();
+}
+
 std::string RecoveryReport::to_json() const {
   std::ostringstream ss;
   ss << "{"
      << "\"redoneTransactions\":" << redone_transactions << ","
      << "\"discardedTransactions\":" << discarded_transactions << ","
-     << "\"explanation\":\"" << explanation << "\"}";
+     << "\"explanation\":\"" << explanation << "\","
+     << "\"redoneTxIds\":[";
+  for (std::size_t i = 0; i < redone_tx_ids.size(); ++i) {
+    if (i > 0) ss << ",";
+    ss << redone_tx_ids[i];
+  }
+  ss << "],\"discardedTxIds\":[";
+  for (std::size_t i = 0; i < discarded_tx_ids.size(); ++i) {
+    if (i > 0) ss << ",";
+    ss << discarded_tx_ids[i];
+  }
+  ss << "]}";
+  return ss.str();
+}
+
+std::string JournalingFileSystem::to_json() const {
+  std::ostringstream ss;
+  ss << "{\"schemaVersion\":1,\"subsystem\":\"journal\",\"records\":[";
+  for (std::size_t i = 0; i < journal_.size(); ++i) {
+    if (i > 0) ss << ",";
+    ss << journal_[i].to_json();
+  }
+  ss << "]}";
   return ss.str();
 }
 
