@@ -1,10 +1,18 @@
 #pragma once
 
+#ifndef __cplusplus
+#error "KernelLens test harness requires a C++17 compiler"
+#endif
+
 #include <iostream>
 #include <string>
 #include <vector>
 #include <functional>
 #include <cmath>
+#include <stdexcept>
+#include <utility>
+#include <memory>
+#include <cstdint>
 
 namespace kernellens::testing {
 
@@ -107,4 +115,49 @@ struct AutoRegister {
     } \
   } while (0)
 
+#define ASSERT_LT(a, b) ASSERT_TRUE((a) < (b))
+#define ASSERT_LE(a, b) ASSERT_TRUE((a) <= (b))
+#define ASSERT_GT(a, b) ASSERT_TRUE((a) > (b))
+#define ASSERT_GE(a, b) ASSERT_TRUE((a) >= (b))
+
+// GoogleTest Compatibility Aliases
+#define EXPECT_TRUE(cond) ASSERT_TRUE(cond)
+#define EXPECT_FALSE(cond) ASSERT_FALSE(cond)
+#define EXPECT_EQ(a, b) ASSERT_EQ(a, b)
+#define EXPECT_NE(a, b) ASSERT_NE(a, b)
+#define EXPECT_NEAR(a, b, eps) ASSERT_NEAR(a, b, eps)
+#define EXPECT_LT(a, b) ASSERT_LT(a, b)
+#define EXPECT_LE(a, b) ASSERT_LE(a, b)
+#define EXPECT_GT(a, b) ASSERT_GT(a, b)
+#define EXPECT_GE(a, b) ASSERT_GE(a, b)
+
 } // namespace kernellens::testing
+
+// Global ::testing namespace for GoogleTest compatibility
+namespace testing {
+class Test {
+public:
+  virtual ~Test() = default;
+  virtual void SetUp() {}
+  virtual void TearDown() {}
+};
+} // namespace testing
+
+#define TEST_F(FixtureClass, TestName) \
+  class FixtureClass##_##TestName##_Class : public FixtureClass { \
+  public: \
+    void run() { \
+      SetUp(); \
+      TestBody(); \
+      TearDown(); \
+    } \
+    void TestBody(); \
+  }; \
+  static ::kernellens::testing::AutoRegister reg_##FixtureClass##_##TestName(#FixtureClass "_" #TestName, []() { \
+    FixtureClass##_##TestName##_Class fixture; \
+    fixture.run(); \
+  }); \
+  void FixtureClass##_##TestName##_Class::TestBody()
+
+#define TEST(Suite, Name) TEST_CASE(Suite##_##Name)
+

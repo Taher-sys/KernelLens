@@ -1,0 +1,8 @@
+{
+  "version": "1.0",
+  "schemaVersion": 1,
+  "module": "cpu",
+  "policy": "FCFS",
+  "runId": "phase6-contract-test",
+  "seed": 42
+}

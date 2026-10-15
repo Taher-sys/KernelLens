@@ -81,6 +81,7 @@ void print_help() {
             << "  --preemptive                      Enable preemption for Priority scheduler\n"
             << "  --aging <TICKS>                   Aging tick interval for Priority scheduler (0 = off)\n"
             << "  --format <summary|table|json|csv> Output presentation format (default: summary/table)\n"
+            << "  --version, -v                     Display version information\n"
             << "  --help, -h                        Display this help message\n";
 }
 
@@ -116,6 +117,9 @@ int main(int argc, char* argv[]) {
     std::string arg = argv[i];
     if (arg == "--help" || arg == "-h") {
       print_help();
+      return 0;
+    } else if (arg == "--version" || arg == "-v") {
+      std::cout << "KernelLens version 1.0.0 (Phase 11: Deterministic OS Simulation Engine)\n";
       return 0;
     } else if (arg == "--module" && i + 1 < argc) {
       module = argv[++i];

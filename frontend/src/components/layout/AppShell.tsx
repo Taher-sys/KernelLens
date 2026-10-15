@@ -31,7 +31,19 @@ import { CardSpotlight } from '../ui/card-spotlight';
 
 export type SubsystemTab = 'cpu' | 'compare' | 'memory' | 'sync' | 'disk';
 
-export const AppShell: React.FC = () => {
+export interface AppShellProps {
+  splashEnabled?: boolean;
+  onToggleSplash?: () => void;
+  splashIntensity?: number;
+  onChangeSplashIntensity?: (val: number) => void;
+}
+
+export const AppShell: React.FC<AppShellProps> = ({
+  splashEnabled,
+  onToggleSplash,
+  splashIntensity,
+  onChangeSplashIntensity
+}) => {
   // Navigation
   const [activeTab, setActiveTab] = useState<SubsystemTab>('cpu');
 
@@ -364,6 +376,140 @@ export const AppShell: React.FC = () => {
             <ShieldCheck size={11} />
             schemaVersion: 1
           </span>
+
+          {/* CURSOR FX RUNTIME CONTROL HUD */}
+          {onToggleSplash && splashIntensity !== undefined && (
+            <div
+              className="flex items-center gap-2 bg-[#12151A]/80 border border-[#1F242D] rounded-sm px-2.5 py-1"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: 'rgba(18, 21, 26, 0.85)',
+                border: '1px solid #1F242D',
+                borderRadius: '2px',
+                padding: '3px 8px',
+                fontSize: '11px'
+              }}
+            >
+              <button
+                type="button"
+                onClick={onToggleSplash}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  color: splashEnabled ? '#00A389' : '#4A5568',
+                  padding: '2px 4px'
+                }}
+                title={splashEnabled ? 'Disable WebGL cursor fluid effect' : 'Enable WebGL cursor fluid effect'}
+                aria-label={`Toggle Cursor FX (${splashEnabled ? 'ON' : 'OFF'})`}
+              >
+                <span
+                  style={{
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    backgroundColor: splashEnabled ? '#00A389' : '#4A5568',
+                    boxShadow: splashEnabled ? '0 0 6px #00A389' : 'none',
+                    display: 'inline-block'
+                  }}
+                />
+                CURSOR FX: {splashEnabled ? 'ON' : 'OFF'}
+              </button>
+
+              {splashEnabled && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    borderLeft: '1px solid #1F242D',
+                    paddingLeft: '8px'
+                  }}
+                >
+                  <span
+                    className="font-mono text-xs text-neutral-300"
+                    style={{
+                      fontFamily: 'var(--font-mono, monospace)',
+                      fontSize: '11px',
+                      color: '#d4d4d4',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    INTENSITY: {splashIntensity.toFixed(2)}x
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => onChangeSplashIntensity?.(Math.max(0.1, parseFloat((splashIntensity - 0.05).toFixed(2))))}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.06)',
+                      border: '1px solid #1F242D',
+                      color: '#e2e8f0',
+                      borderRadius: '2px',
+                      width: '18px',
+                      height: '18px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      fontSize: '11px',
+                      lineHeight: 1
+                    }}
+                    title="Decrease Intensity (-0.05)"
+                    aria-label="Decrease Intensity"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="range"
+                    min="0.1"
+                    max="2.0"
+                    step="0.05"
+                    value={splashIntensity}
+                    onChange={(e) => onChangeSplashIntensity?.(parseFloat(e.target.value))}
+                    className="accent-[#00F2FE]"
+                    style={{
+                      width: '56px',
+                      height: '4px',
+                      accentColor: '#00F2FE',
+                      cursor: 'pointer'
+                    }}
+                    title={`Cursor Fluid Intensity: ${splashIntensity.toFixed(2)}x`}
+                    aria-label="Cursor Fluid Intensity"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => onChangeSplashIntensity?.(Math.min(2.0, parseFloat((splashIntensity + 0.05).toFixed(2))))}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.06)',
+                      border: '1px solid #1F242D',
+                      color: '#e2e8f0',
+                      borderRadius: '2px',
+                      width: '18px',
+                      height: '18px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      fontSize: '11px',
+                      lineHeight: 1
+                    }}
+                    title="Increase Intensity (+0.05)"
+                    aria-label="Increase Intensity"
+                  >
+                    +
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Reduced Motion Toggle */}
           <button

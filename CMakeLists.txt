@@ -21,7 +21,10 @@ else()
 endif()
 
 # Include directories
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/engine/include)
+include_directories(
+  ${CMAKE_CURRENT_SOURCE_DIR}/engine/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/tests
+)
 
 # Engine library sources
 file(GLOB_RECURSE ENGINE_SOURCES 
