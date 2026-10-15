@@ -85,9 +85,11 @@ body.reduced-motion *, body.reduced-motion *::before, body.reduced-motion *::aft
   background: var(--border-contrast, #434f63);
 }
 
-/* Mission Control Panel (Replaces generic glassmorphism) */
+/* Mission Control Panel (High-density semi-transparent surface) */
 .glass-panel {
-  background: var(--surface-panel, #12151a);
+  background: var(--surface-panel, rgba(18, 21, 26, 0.90));
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   border: 1px solid var(--border-subtle, #1f242d);
   border-radius: var(--radius-md, 3px);
   transition: border-color var(--duration-fast, 120ms) ease;
@@ -100,6 +102,22 @@ body.reduced-motion *, body.reduced-motion *::before, body.reduced-motion *::aft
 .glass-panel-glow {
   border-color: var(--telemetry-cyan, #00f2fe);
 }
+
+/* Layout, Surface Transparency & Scrollflow Utilities */
+.relative { position: relative; }
+.min-h-screen { min-height: 100vh; }
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.overflow-x-hidden { overflow-x: hidden; }
+.bg-transparent { background-color: transparent !important; background: transparent !important; }
+.bg-\[\#12151A\]\/90 { background-color: rgba(18, 21, 26, 0.90) !important; }
+.bg-\[\#12151A\]\/85 { background-color: rgba(18, 21, 26, 0.85) !important; }
+.backdrop-blur-sm { backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+.border-\[\#1F242D\] { border-color: #1f242d !important; }
+.border-b { border-bottom-width: 1px; border-bottom-style: solid; }
+.border-t { border-top-width: 1px; border-top-style: solid; }
+.border { border-width: 1px; border-style: solid; }
+.mt-auto { margin-top: auto !important; }
 
 /* Solid Instrumentation Buttons */
 .btn-primary {
@@ -238,4 +256,21 @@ body.reduced-motion *, body.reduced-motion *::before, body.reduced-motion *::aft
 }
 .spin {
   animation: spin 1s linear infinite;
+}
+
+/* Halftone Wordmark Footer Clean Utilities */
+.hwf-root {
+  --hwf-bg: transparent;
+}
+
+.hwf-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }

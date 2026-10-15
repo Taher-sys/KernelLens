@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Plus, Trash2, Play, Sliders, ChevronDown, ChevronRight } from 'lucide-react';
 import { ProcessSpec, CpuPolicy } from '../../bridge/schema';
 import { SUPPORTED_CPU_POLICIES } from '../../bridge/engineBridge';
+import { CardSpotlight } from '../../components/ui/card-spotlight';
 
 // Textbook Scenario Presets
 export const WORKLOAD_PRESETS: { name: string; description: string; policy: CpuPolicy; quantum: number; processes: ProcessSpec[] }[] = [
@@ -198,9 +199,14 @@ export const WorkloadBuilder: React.FC<WorkloadBuilderProps> = ({
   };
 
   return (
-    <div
-      className="glass-panel"
+    <CardSpotlight
+      className="glass-panel w-full"
       style={{
+        maxHeight: '100%',
+        display: 'flex',
+        flexDirection: 'column'
+      }}
+      contentStyle={{
         padding: '14px',
         display: 'flex',
         flexDirection: 'column',
@@ -209,6 +215,8 @@ export const WorkloadBuilder: React.FC<WorkloadBuilderProps> = ({
         maxHeight: '100%',
         overflowY: 'auto'
       }}
+      radius={320}
+      revealColors={[[59, 130, 246], [139, 92, 246]]}
       role="region"
       aria-label="Workload Builder & Simulation Dispatcher"
     >
@@ -615,6 +623,6 @@ export const WorkloadBuilder: React.FC<WorkloadBuilderProps> = ({
         <Play size={14} />
         <span>{isExecuting ? 'SIMULATING...' : 'RUN SIMULATION'}</span>
       </button>
-    </div>
+    </CardSpotlight>
   );
 };

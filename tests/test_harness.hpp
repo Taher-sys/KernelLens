@@ -93,6 +93,13 @@ struct AutoRegister {
     } \
   } while (0)
 
+#define ASSERT_NE(a, b) \
+  do { \
+    if ((a) == (b)) { \
+      throw std::runtime_error(std::string("Assertion failed: ") + #a + " != " + #b + " at " + __FILE__ + ":" + std::to_string(__LINE__)); \
+    } \
+  } while (0)
+
 #define ASSERT_NEAR(a, b, eps) \
   do { \
     if (std::abs((a) - (b)) > (eps)) { \

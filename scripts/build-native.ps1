@@ -33,7 +33,13 @@ $SrcFiles = @(
   "engine/src/filesystem/filesystem.cpp",
   "engine/src/filesystem/journal.cpp",
   "engine/src/core/comparator.cpp",
-  "engine/src/core/replay_engine.cpp"
+  "engine/src/core/replay_engine.cpp",
+  "engine/src/ipc/pipe.cpp",
+  "engine/src/ipc/message_queue.cpp",
+  "engine/src/ipc/shared_memory.cpp",
+  "engine/src/ipc/ipc_manager.cpp",
+  "engine/src/syscall/syscall_dispatcher.cpp",
+  "engine/src/interrupt/interrupt.cpp"
 )
 
 if (-not (Test-Path "build/bin")) {
@@ -55,6 +61,9 @@ $TestFiles = @(
   "tests/unit/test_allocator.cpp",
   "tests/unit/test_buddy_allocator.cpp",
   "tests/unit/test_filesystem.cpp",
+  "tests/unit/test_ipc.cpp",
+  "tests/unit/test_syscall.cpp",
+  "tests/unit/test_interrupt.cpp",
   "tests/golden/test_golden_cpu.cpp",
   "tests/golden/test_golden_memory.cpp",
   "tests/golden/test_golden_sync.cpp",
@@ -62,6 +71,7 @@ $TestFiles = @(
   "tests/golden/test_golden_comparison.cpp",
   "tests/golden/test_golden_allocator.cpp",
   "tests/golden/test_golden_filesystem.cpp",
+  "tests/golden/test_golden_ipc.cpp",
   "tests/unit/test_workload_generator.cpp",
   "tests/unit/test_comparator.cpp",
   "tests/unit/test_replay.cpp"

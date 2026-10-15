@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import * as d3 from 'd3';
 import { Maximize2 } from 'lucide-react';
 import { SimEvent, ProcessSpec } from '../../bridge/schema';
+import { CardSpotlight } from '../../components/ui/card-spotlight';
 
 interface GanttTimelineProps {
   events: SimEvent[];
@@ -495,13 +496,16 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({
     >
       {/* Zoom / Viewport Toolbar */}
       <div
+        className="bg-[#12151A]/90 backdrop-blur-sm border border-[#1F242D]"
         style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           padding: '4px 8px',
-          background: 'var(--surface-subpanel, #181d24)',
-          border: '1px solid var(--border-subtle, #1f242d)',
+          background: 'rgba(24, 29, 36, 0.85)',
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
+          border: '1px solid #1f242d',
           borderRadius: 'var(--radius-sm, 2px)',
           fontSize: '11px',
           fontFamily: 'var(--font-mono, monospace)'
@@ -543,16 +547,19 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({
         </div>
       </div>
 
-      {/* SVG Canvas Container with Horizontal Scroll */}
-      <div
+      {/* SVG Canvas Container with Horizontal Scroll & Spotlight Reveal */}
+      <CardSpotlight
+        className="w-full"
         style={{
+          borderRadius: 'var(--radius-sm, 2px)'
+        }}
+        contentStyle={{
           width: '100%',
           overflowX: 'auto',
-          background: 'var(--surface-canvas, #0b0d10)',
-          border: '1px solid var(--border-subtle, #1f242d)',
-          borderRadius: 'var(--radius-sm, 2px)',
           position: 'relative'
         }}
+        radius={360}
+        revealColors={[[59, 130, 246], [139, 92, 246]]}
         tabIndex={0}
         role="region"
         aria-label="Interactive CPU Gantt Timeline Canvas"
@@ -594,7 +601,7 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({
             )}
           </div>
         )}
-      </div>
+      </CardSpotlight>
 
       {/* Legend Bar (docs/ux-system.md Section 2.1) */}
       <div

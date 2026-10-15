@@ -18,6 +18,12 @@
 #include "kernellens/disk/schedulers.hpp"
 #include "kernellens/filesystem/filesystem.hpp"
 #include "kernellens/filesystem/journal.hpp"
+#include "kernellens/ipc/pipe.hpp"
+#include "kernellens/ipc/message_queue.hpp"
+#include "kernellens/ipc/shared_memory.hpp"
+#include "kernellens/ipc/ipc_manager.hpp"
+#include "kernellens/syscall/syscall_table.hpp"
+#include "kernellens/interrupt/interrupt.hpp"
 
 #include <iostream>
 #include <string>
@@ -47,7 +53,7 @@ void print_help() {
   std::cout << "KernelLens — OS-in-a-Box Deterministic Simulation Engine\n"
             << "Usage: kernellens [options]\n\n"
             << "Execution Modes:\n"
-            << "  --module <cpu|memory|sync|disk|allocator> Simulation subsystem (default: cpu)\n"
+            << "  --module <cpu|memory|sync|disk|allocator|filesystem|ipc|syscall|interrupt> Simulation subsystem (default: cpu)\n"
             << "  --policy <NAME>                   Policy name (e.g. FCFS, SJF, SRTF, ROUND_ROBIN, LRU, SSTF, FIRST_FIT, BEST_FIT, WORST_FIT, BUDDY)\n"
             << "  --preset <NAME>                   Workload preset: convoy, sjf, starvation, interactive, rr, mlfq, belady\n"
             << "  --workload-file <PATH>            Path to JSON workload file\n\n"
@@ -65,9 +71,11 @@ void print_help() {
             << "  --replay                          Run simulation with periodic checkpoint capture (K=50)\n"
             << "  --scrub <T1,T2,...>               Time-travel scrub to comma-separated ticks and print state\n"
             << "  --checkpoint-interval <K>         Snapshot frequency in events (default: 50)\n\n"
-            << "Phase 10 Extensions:\n"
+            << "Phase 10 & 11 Extensions:\n"
             << "  --fs-strategy <CONTIGUOUS|LINKED|INDEXED> File allocation strategy (default: INDEXED)\n"
-            << "  --fs-capacity <BLOCKS>            Total block capacity for filesystem (default: 128)\n\n"
+            << "  --fs-capacity <BLOCKS>            Total block capacity for filesystem (default: 128)\n"
+            << "  --ipc-capacity <BYTES>            Pipe circular buffer capacity (default: 512)\n"
+            << "  --mq-capacity <MSGS>              Message queue capacity (default: 10)\n\n"
             << "Common Options:\n"
             << "  --quantum <TICKS>                 Time slice for RoundRobin / MLFQ (default: 3)\n"
             << "  --preemptive                      Enable preemption for Priority scheduler\n"
@@ -98,6 +106,8 @@ int main(int argc, char* argv[]) {
   bool do_compact = false;
   std::size_t capacity = 1024;
   std::size_t fs_blocks = 128;
+  std::size_t ipc_capacity = 512;
+  std::size_t mq_capacity = 10;
   std::uint64_t seed = 42;
   std::size_t num_processes = 5;
   std::size_t checkpoint_interval = 50;
@@ -127,6 +137,10 @@ int main(int argc, char* argv[]) {
       fs_strategy_str = argv[++i];
     } else if (arg == "--fs-capacity" && i + 1 < argc) {
       fs_blocks = std::stoull(argv[++i]);
+    } else if (arg == "--ipc-capacity" && i + 1 < argc) {
+      ipc_capacity = std::stoull(argv[++i]);
+    } else if (arg == "--mq-capacity" && i + 1 < argc) {
+      mq_capacity = std::stoull(argv[++i]);
     } else if (arg == "--preemptive") {
       preemptive = true;
     } else if (arg == "--compare") {
@@ -705,6 +719,218 @@ int main(int argc, char* argv[]) {
                 << " Directory Hierarchy:\n"
                 << fs.print_tree("/")
                 << "========================================================\n";
+    }
+    return 0;
+  }
+
+  // -------------------------------------------------------------
+  // IPC Subsystem (Phase 11)
+  // -------------------------------------------------------------
+  if (module == "ipc") {
+    EventLog log("ipc-simulation");
+    IpcManager ipc(&log);
+
+    // 1. Pipe Demonstration (Producer -> Consumer with chunking and EOF)
+    PipeId p1 = ipc.create_pipe(ipc_capacity, 20, 10, 0);
+    Pipe* pipe = ipc.get_pipe(p1);
+    if (pipe) {
+      // Process 10 writes chunk 1
+      pipe->write(std::vector<std::uint8_t>{0x41, 0x42, 0x43, 0x44}, 10, 1);
+      // Process 20 reads 2 bytes
+      pipe->read(2, 20, 2);
+      // Process 10 writes chunk 2
+      pipe->write(std::vector<std::uint8_t>{0x45, 0x46, 0x47, 0x48, 0x49}, 10, 3);
+      // Process 10 closes write end (EOF signaling)
+      ipc.close_pipe_write(p1, 10, 4);
+      // Process 20 reads all remaining bytes until EOF (0 bytes)
+      pipe->read(64, 20, 5);
+      // Process 10 attempts writing to closed pipe -> EPIPE / SIGPIPE
+      pipe->write(std::vector<std::uint8_t>{0xFF}, 10, 6);
+    }
+
+    // 2. Priority Message Queue Demonstration
+    MqId q1 = ipc.create_mq("kernel-telemetry", mq_capacity, 256, 7);
+    MessageQueue* mq = ipc.get_mq(q1);
+    if (mq) {
+      // Send bulk messages with varying priority and types
+      mq->send(100, 1, 10, "LOW_PRIO_BACKGROUND_LOG", 8);
+      mq->send(101, 2, 90, "CRITICAL_OOM_KERNEL_PANIC", 9);
+      mq->send(102, 1, 50, "MEDIUM_PRIO_HEARTBEAT", 10);
+      mq->send(103, 1, 10, "SECOND_LOW_PRIO_TASK", 11);
+
+      // Receiver extracts highest priority message first (Priority 90 preempts!)
+      mq->receive(200, 0, 12);
+      // Receiver extracts type 1 specifically
+      mq->receive(200, 1, 13);
+    }
+
+    // 3. Shared Memory & Data Race Detection Demonstration
+    ShmId s1 = ipc.create_shm(0xCAFE, 1024, 14);
+    SharedMemorySegment* shm = ipc.get_shm(s1);
+    if (shm) {
+      shm->attach(300, 0x10000, ShmPermission::ReadWrite, 15);
+      shm->attach(301, 0x20000, ShmPermission::ReadWrite, 16);
+
+      // Safe synchronized write using lock ID 1
+      shm->write(300, 0, std::vector<std::uint8_t>{0x01, 0x02, 0x03}, 1, 17);
+
+      // Unsynchronized concurrent write without lock -> Race condition detected!
+      shm->write(300, 4, std::vector<std::uint8_t>{0xAA, 0xBB}, std::nullopt, 18);
+      shm->write(301, 4, std::vector<std::uint8_t>{0xCC, 0xDD}, std::nullopt, 18);
+
+      shm->detach(300, 19);
+      shm->detach(301, 20);
+    }
+
+    auto m = ipc.compute_metrics();
+
+    if (format == "json") {
+      std::ostringstream ss;
+      ss << "{\"events\":" << log.to_json()
+         << ",\"metrics\":" << m.to_json()
+         << ",\"ipc\":" << ipc.to_json()
+         << "}";
+      std::cout << ss.str() << "\n";
+    } else {
+      std::cout << "========================================================\n"
+                << " KernelLens Inter-Process Communication (Phase 11)\n"
+                << " Pipe Capacity: " << ipc_capacity << " B | MQ Max Msgs: " << mq_capacity << "\n"
+                << "========================================================\n"
+                << " Total Pipes:            " << m.total_pipes << "\n"
+                << " Active Pipes:           " << m.active_pipes << "\n"
+                << " Total Message Queues:   " << m.total_message_queues << "\n"
+                << " Messages Queued:        " << m.total_messages_queued << "\n"
+                << " Shared Memory Segments: " << m.total_shm_segments << "\n"
+                << " Total Shm Bytes:        " << m.total_shm_bytes << " B\n"
+                << " Data Race Hazards:      " << m.total_race_conditions << "\n"
+                << " Total IPC Events:       " << log.size() << "\n"
+                << "========================================================\n";
+    }
+    return 0;
+  }
+
+  // -------------------------------------------------------------
+  // Syscall Subsystem (Phase 11)
+  // -------------------------------------------------------------
+  if (module == "syscall") {
+    EventLog log("syscall-simulation");
+    IpcManager ipc(&log);
+    InodeFileSystem fs(512, 64, &log);
+    SyscallDispatcher dispatcher(&log, &ipc, &fs);
+
+    ProcessExecutionContext ctx(1001, 0x4000, 0xF000, 0x8000, 0);
+
+    // 1. SYS_GETPID
+    dispatcher.invoke(ctx, SyscallNumber::SysGetPid, {}, 1);
+
+    // 2. SYS_PIPE
+    auto r_pipe = dispatcher.invoke(ctx, SyscallNumber::SysPipe, {256}, 2);
+    std::uint64_t pipe_id = static_cast<std::uint64_t>(r_pipe.return_value);
+
+    // 3. SYS_WRITE to Pipe
+    dispatcher.invoke(ctx, SyscallNumber::SysWrite, {pipe_id, 0x41424344, 4}, 3);
+
+    // 4. SYS_READ from Pipe
+    dispatcher.invoke(ctx, SyscallNumber::SysRead, {pipe_id, 0x2000, 4}, 4);
+
+    // 5. SYS_MQ_SEND
+    dispatcher.invoke(ctx, SyscallNumber::SysMqSend, {1, 99, 10}, 5);
+
+    // 6. SYS_YIELD & SYS_SLEEP
+    dispatcher.invoke(ctx, SyscallNumber::SysYield, {}, 6);
+    dispatcher.invoke(ctx, SyscallNumber::SysSleep, {15}, 7);
+
+    // 7. Error rejection: Invalid bad file descriptor
+    dispatcher.invoke(ctx, SyscallNumber::SysClose, {9999}, 8);
+
+    // 8. SYS_EXIT
+    dispatcher.invoke(ctx, SyscallNumber::SysExit, {0}, 9);
+
+    auto m = dispatcher.compute_metrics();
+
+    if (format == "json") {
+      std::ostringstream ss;
+      ss << "{\"events\":" << log.to_json()
+         << ",\"metrics\":" << m.to_json()
+         << "}";
+      std::cout << ss.str() << "\n";
+    } else {
+      std::cout << "========================================================\n"
+                << " KernelLens Syscall & Hardware Trap Layer (Phase 11)\n"
+                << " Execution Mode: Ring 3 User -> Ring 0 Kernel (Trap 0x80)\n"
+                << "========================================================\n"
+                << " Total Invocations:      " << m.total_invocations << "\n"
+                << " Successful Calls:       " << m.successful_invocations << "\n"
+                << " Rejected Calls:         " << m.failed_invocations << "\n"
+                << " Kernel Ticks Spent:     " << m.total_kernel_ticks_spent << " ticks\n"
+                << "--------------------------------------------------------\n"
+                << " Call Distribution:\n";
+      for (const auto& [name, count] : m.call_counts) {
+        std::cout << "  " << std::left << std::setw(18) << name << " : " << count << "\n";
+      }
+      std::cout << "========================================================\n";
+    }
+    return 0;
+  }
+
+  // -------------------------------------------------------------
+  // Interrupt Controller Subsystem (Phase 11)
+  // -------------------------------------------------------------
+  if (module == "interrupt" || module == "irq") {
+    EventLog log("interrupt-simulation");
+    InterruptController ic(&log);
+    ProcessExecutionContext ctx(500, 0x1000, 0xF000, 0x8000, 0);
+
+    // 1. Direct hardware interrupt dispatch
+    ic.raise_interrupt(32, "PIT_TIMER", &ctx, 1);
+    ic.complete_interrupt(32, ctx, 2);
+
+    // 2. CLI Masking demonstration
+    ic.disable_interrupts(3);
+    ic.raise_interrupt(33, "KEYBOARD", &ctx, 4);   // Priority 20
+    ic.raise_interrupt(46, "DISK_DMA", &ctx, 5);   // Priority 5
+
+    // STI Unmasking -> Pending interrupts dispatched in strict priority order (Disk DMA then Keyboard)
+    ic.enable_interrupts(6);
+    ic.dispatch_pending(ctx, 7);
+    ic.complete_interrupt(46, ctx, 8);
+    ic.dispatch_pending(ctx, 9);
+    ic.complete_interrupt(33, ctx, 10);
+
+    // 3. Nested Priority Preemption demonstration
+    // Start low-priority ISR (Keyboard priority 20)
+    ic.raise_interrupt(33, "KEYBOARD", &ctx, 11);
+    // Higher priority Disk DMA (priority 5) preempts Keyboard ISR!
+    ic.raise_interrupt(46, "DISK_DMA", &ctx, 12);
+    // Complete Disk DMA -> resumes Keyboard
+    ic.complete_interrupt(46, ctx, 13);
+    // Complete Keyboard
+    ic.complete_interrupt(33, ctx, 14);
+
+    auto m = ic.compute_metrics();
+
+    if (format == "json") {
+      std::ostringstream ss;
+      ss << "{\"events\":" << log.to_json()
+         << ",\"metrics\":" << m.to_json()
+         << "}";
+      std::cout << ss.str() << "\n";
+    } else {
+      std::cout << "========================================================\n"
+                << " KernelLens Interrupt Vector Controller (Phase 11)\n"
+                << " 256-Vector IVT | Priority Preemption | CLI/STI Masking\n"
+                << "========================================================\n"
+                << " Total Raised:           " << m.total_raised << "\n"
+                << " Total Handled:          " << m.total_handled << "\n"
+                << " Masked & Deferred:      " << m.total_masked_deferred << "\n"
+                << " Nested Preemptions:     " << m.total_nested_interrupts << "\n"
+                << " Peak Pending Queue:     " << m.peak_pending_queue << "\n"
+                << "--------------------------------------------------------\n"
+                << " Serviced Vector Distribution:\n";
+      for (const auto& [name, count] : m.vector_counts) {
+        std::cout << "  " << std::left << std::setw(18) << name << " : " << count << "\n";
+      }
+      std::cout << "========================================================\n";
     }
     return 0;
   }

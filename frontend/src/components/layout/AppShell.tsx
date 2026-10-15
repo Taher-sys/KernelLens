@@ -25,6 +25,9 @@ import { CompareView } from '../../features/compare/CompareView';
 import { MemoryVisualizer } from '../../features/MemoryVisualizer';
 import { SyncVisualizer } from '../../features/SyncVisualizer';
 import { DiskVisualizer } from '../../features/DiskVisualizer';
+import { PlasmaBackground } from '../common/PlasmaBackground';
+import { HalftoneWordmarkFooter } from '../ui/halftone-wordmark-footer';
+import { CardSpotlight } from '../ui/card-spotlight';
 
 export type SubsystemTab = 'cpu' | 'compare' | 'memory' | 'sync' | 'disk';
 
@@ -220,20 +223,28 @@ export const AppShell: React.FC = () => {
 
   return (
     <div
+      className="relative min-h-screen flex flex-col overflow-x-hidden bg-transparent"
       style={{
+        position: 'relative',
         display: 'flex',
         flexDirection: 'column',
         minHeight: '100vh',
-        background: 'var(--surface-canvas, #0b0d10)',
+        background: 'transparent',
         color: 'var(--text-main, #f8fafc)',
         overflowX: 'hidden'
       }}
     >
+      {/* BACKGROUND CANVAS SLOT */}
+      <PlasmaBackground reducedMotion={reducedMotion} />
+
       {/* 1. MISSION CONTROL TOP HEADER */}
       <header
+        className="bg-[#12151A]/90 backdrop-blur-sm border-b border-[#1F242D]"
         style={{
-          background: 'var(--surface-panel, #12151a)',
-          borderBottom: '1px solid var(--border-subtle, #1f242d)',
+          background: 'rgba(18, 21, 26, 0.90)',
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
+          borderBottom: '1px solid #1f242d',
           padding: '8px 16px',
           display: 'flex',
           justifyContent: 'space-between',
@@ -476,14 +487,16 @@ export const AppShell: React.FC = () => {
               }}
             >
               {/* Metrics Card */}
-              <div
+              <CardSpotlight
                 className="glass-panel"
-                style={{
+                contentStyle={{
                   padding: '12px',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '10px'
                 }}
+                radius={300}
+                revealColors={[[59, 130, 246], [139, 92, 246]]}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -544,19 +557,26 @@ export const AppShell: React.FC = () => {
                     No simulation loaded.
                   </div>
                 )}
-              </div>
+              </CardSpotlight>
 
               {/* Event Stream Inspector */}
-              <div
+              <CardSpotlight
                 className="glass-panel"
                 style={{
+                  flex: 1,
+                  maxHeight: '440px',
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
+                contentStyle={{
                   padding: '12px',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '8px',
-                  flex: 1,
-                  maxHeight: '440px'
+                  height: '100%'
                 }}
+                radius={320}
+                revealColors={[[0, 163, 137], [0, 242, 254]]}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -628,7 +648,7 @@ export const AppShell: React.FC = () => {
                     );
                   })}
                 </div>
-              </div>
+              </CardSpotlight>
             </div>
           </div>
         )}
@@ -665,14 +685,17 @@ export const AppShell: React.FC = () => {
       {/* 3. MASTER SIMULATION DECK (Docked at bottom of viewport for CPU tab) */}
       {activeTab === 'cpu' && (
         <footer
+          className="bg-[#12151A]/90 backdrop-blur-sm border-t border-[#1F242D]"
           style={{
             position: 'fixed',
             bottom: 0,
             left: 0,
             right: 0,
             zIndex: 100,
-            background: 'var(--surface-panel, #12151a)',
-            borderTop: '1px solid var(--border-contrast, #434f63)',
+            background: 'rgba(18, 21, 26, 0.90)',
+            backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
+            borderTop: '1px solid #1f242d',
             boxShadow: '0 -4px 16px rgba(0, 0, 0, 0.7)'
           }}
         >
@@ -687,6 +710,9 @@ export const AppShell: React.FC = () => {
           </div>
         </footer>
       )}
+
+      {/* FOOTER SLOT */}
+      <HalftoneWordmarkFooter reducedMotion={reducedMotion} className="relative z-10 w-full mt-auto" />
 
       {/* 4. KEYBOARD SHORTCUTS MODAL */}
       {isKeyboardModalOpen && (
@@ -703,17 +729,21 @@ export const AppShell: React.FC = () => {
           }}
           onClick={() => setIsKeyboardModalOpen(false)}
         >
-          <div
+          <CardSpotlight
             className="glass-panel"
             style={{
               maxWidth: '440px',
               width: '100%',
+              border: '1px solid var(--border-contrast)'
+            }}
+            contentStyle={{
               padding: '20px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '14px',
-              border: '1px solid var(--border-contrast)'
+              gap: '14px'
             }}
+            radius={260}
+            revealColors={[[59, 130, 246], [139, 92, 246]]}
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -767,7 +797,7 @@ export const AppShell: React.FC = () => {
             >
               Close
             </button>
-          </div>
+          </CardSpotlight>
         </div>
       )}
 
@@ -786,17 +816,21 @@ export const AppShell: React.FC = () => {
           }}
           onClick={() => setIsExportModalOpen(false)}
         >
-          <div
+          <CardSpotlight
             className="glass-panel"
             style={{
               maxWidth: '400px',
               width: '100%',
+              border: '1px solid var(--border-contrast)'
+            }}
+            contentStyle={{
               padding: '20px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '14px',
-              border: '1px solid var(--border-contrast)'
+              gap: '14px'
             }}
+            radius={260}
+            revealColors={[[59, 130, 246], [139, 92, 246]]}
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -855,7 +889,7 @@ export const AppShell: React.FC = () => {
                 <span className="badge badge-emerald">.CSV</span>
               </button>
             </div>
-          </div>
+          </CardSpotlight>
         </div>
       )}
     </div>

@@ -4,6 +4,7 @@ import { ProcessSpec, CpuPolicy } from '../../bridge/schema';
 import { defaultEngineBridge, SUPPORTED_CPU_POLICIES } from '../../bridge/engineBridge';
 import { MetricDeltaTable, PolicyRunResult } from './MetricDeltaTable';
 import { GanttTimeline } from '../cpu/GanttTimeline';
+import { CardSpotlight } from '../../components/ui/card-spotlight';
 
 interface CompareViewProps {
   workload?: ProcessSpec[];
@@ -154,9 +155,9 @@ export const CompareView: React.FC<CompareViewProps> = ({
       )}
 
       {/* Comparative Mission Control Header */}
-      <div
+      <CardSpotlight
         className="glass-panel"
-        style={{
+        contentStyle={{
           padding: '12px 16px',
           display: 'flex',
           justifyContent: 'space-between',
@@ -164,6 +165,8 @@ export const CompareView: React.FC<CompareViewProps> = ({
           flexWrap: 'wrap',
           gap: '12px'
         }}
+        radius={320}
+        revealColors={[[59, 130, 246], [139, 92, 246]]}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <Layers size={16} color="var(--primary-cyan)" />
@@ -202,13 +205,13 @@ export const CompareView: React.FC<CompareViewProps> = ({
             {isExecuting ? 'Running...' : 'Re-Run'}
           </button>
         </div>
-      </div>
+      </CardSpotlight>
 
       {/* Synchronized Playhead Deck */}
       {results.length > 0 && maxSimDuration > 0 && (
-        <div
+        <CardSpotlight
           className="glass-panel"
-          style={{
+          contentStyle={{
             padding: '10px 14px',
             display: 'flex',
             alignItems: 'center',
@@ -216,6 +219,8 @@ export const CompareView: React.FC<CompareViewProps> = ({
             flexWrap: 'wrap',
             gap: '12px'
           }}
+          radius={320}
+          revealColors={[[0, 163, 137], [0, 242, 254]]}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <button
@@ -280,7 +285,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
               </button>
             ))}
           </div>
-        </div>
+        </CardSpotlight>
       )}
 
       {/* Quantitative Metric Delta Board */}
@@ -293,15 +298,17 @@ export const CompareView: React.FC<CompareViewProps> = ({
         </div>
 
         {results.map((r) => (
-          <div
+          <CardSpotlight
             key={r.policy}
             className="glass-panel"
-            style={{
+            contentStyle={{
               padding: '10px 12px',
               display: 'flex',
               flexDirection: 'column',
               gap: '6px'
             }}
+            radius={280}
+            revealColors={[[59, 130, 246], [139, 92, 246]]}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontWeight: 700, fontSize: '12px', fontFamily: 'var(--font-mono)', color: '#38bdf8' }}>
@@ -321,7 +328,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
               reducedMotion={reducedMotion}
               onScrub={(t) => setCurrentTick(t)}
             />
-          </div>
+          </CardSpotlight>
         ))}
       </div>
     </div>

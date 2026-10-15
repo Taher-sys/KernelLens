@@ -1,10 +1,11 @@
 :root {
   /* Base Canvas & Surfaces */
   --surface-canvas:      #0b0d10; /* Deepest background; root container */
-  --surface-panel:       #12151a; /* Structural modules, timeline bars, toolbars */
-  --surface-subpanel:    #181d24; /* Row backgrounds, nested containers, headers */
-  --surface-hover:       #1f252e; /* Interactive hover rows & selectable items */
-  --surface-active:      #262d38; /* Selected state / scrubhead hit targets */
+  --surface-panel:       rgba(18, 21, 26, 0.90); /* Structural modules, timeline bars, toolbars */
+  --surface-panel-opaque:#12151a;
+  --surface-subpanel:    rgba(24, 29, 36, 0.85); /* Row backgrounds, nested containers, headers */
+  --surface-hover:       rgba(31, 37, 46, 0.90); /* Interactive hover rows & selectable items */
+  --surface-active:      rgba(38, 45, 56, 0.95); /* Selected state / scrubhead hit targets */
 
   /* Borders & Separators */
   --border-subtle:       #1f242d; /* Structural division between panels */

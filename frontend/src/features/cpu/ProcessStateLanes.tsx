@@ -1,6 +1,7 @@
 import React from 'react';
 import { Cpu, ListOrdered, Clock, CheckCircle2 } from 'lucide-react';
 import { ReplayEngineState, ProcessSpec, SimulationResponse } from '../../bridge/schema';
+import { CardSpotlight } from '../../components/ui/card-spotlight';
 
 interface ProcessStateLanesProps {
   engineState: ReplayEngineState;
@@ -40,15 +41,19 @@ export const ProcessStateLanes: React.FC<ProcessStateLanesProps> = ({
       aria-label="Process State Queue Lanes"
     >
       {/* 1. RUNNING LANE */}
-      <div
+      <CardSpotlight
         className="glass-panel"
         style={{
+          borderTop: '3px solid var(--state-running, #00A389)'
+        }}
+        contentStyle={{
           padding: '10px 12px',
-          borderTop: '3px solid var(--state-running, #00A389)',
           display: 'flex',
           flexDirection: 'column',
           gap: '8px'
         }}
+        radius={280}
+        revealColors={[[0, 163, 137], [0, 242, 254]]}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
@@ -110,18 +115,22 @@ export const ProcessStateLanes: React.FC<ProcessStateLanesProps> = ({
             [CPU Core Idle at Tick {currentTick}]
           </div>
         )}
-      </div>
+      </CardSpotlight>
 
       {/* 2. READY QUEUE LANE */}
-      <div
+      <CardSpotlight
         className="glass-panel"
         style={{
+          borderTop: '3px solid var(--state-ready, #2B6CB0)'
+        }}
+        contentStyle={{
           padding: '10px 12px',
-          borderTop: '3px solid var(--state-ready, #2B6CB0)',
           display: 'flex',
           flexDirection: 'column',
           gap: '8px'
         }}
+        radius={280}
+        revealColors={[[59, 130, 246], [139, 92, 246]]}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
@@ -176,18 +185,22 @@ export const ProcessStateLanes: React.FC<ProcessStateLanesProps> = ({
             [Runqueue Empty]
           </div>
         )}
-      </div>
+      </CardSpotlight>
 
       {/* 3. WAITING / IO LANE */}
-      <div
+      <CardSpotlight
         className="glass-panel"
         style={{
+          borderTop: '3px solid var(--state-waiting, #C05621)'
+        }}
+        contentStyle={{
           padding: '10px 12px',
-          borderTop: '3px solid var(--state-waiting, #C05621)',
           display: 'flex',
           flexDirection: 'column',
           gap: '8px'
         }}
+        radius={280}
+        revealColors={[[244, 157, 55], [194, 64, 42]]}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
@@ -236,18 +249,22 @@ export const ProcessStateLanes: React.FC<ProcessStateLanesProps> = ({
             [Zero Blocked Processes]
           </div>
         )}
-      </div>
+      </CardSpotlight>
 
       {/* 4. TERMINATED LANE */}
-      <div
+      <CardSpotlight
         className="glass-panel"
         style={{
+          borderTop: '3px solid #718096'
+        }}
+        contentStyle={{
           padding: '10px 12px',
-          borderTop: '3px solid #718096',
           display: 'flex',
           flexDirection: 'column',
           gap: '8px'
         }}
+        radius={280}
+        revealColors={[[148, 163, 184], [100, 116, 139]]}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
@@ -303,7 +320,7 @@ export const ProcessStateLanes: React.FC<ProcessStateLanesProps> = ({
             [None Terminated Yet]
           </div>
         )}
-      </div>
+      </CardSpotlight>
     </div>
   );
 };

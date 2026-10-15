@@ -13,18 +13,17 @@ KernelLens is structured into 16 discrete, sequentially verifiable engineering p
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
-│                        COMPLETED FOUNDATION (0–10)                     │
+│                        COMPLETED FOUNDATION (0–11)                     │
 │ Phase 0: Blueprints & Governance    Phase 6: WebAssembly/Replay Bridge │
 │ Phase 1: Clock & CPU Schedulers     Phase 7: Mission Control Frontend  │
 │ Phase 2: Virtual Memory & TLB       Phase 8: Workload Gen & Comparator │
 │ Phase 3: Synchronization & Deadlock Phase 9: Buddy & Dynamic Memory    │
 │ Phase 4: Disk Schedulers & PRNG     Phase 10: Ext2 Filesystem & WAL    │
-│ Phase 5: Allocators & Inode FS                                         │
+│ Phase 5: Allocators & Inode FS      Phase 11: IPC, Syscalls & IVT      │
 └───────────────────────────────────┬────────────────────────────────────┘
                                     │
 ┌───────────────────────────────────▼────────────────────────────────────┐
-│                       UPCOMING PHASES (11–15)                          │
-│ Phase 11: IPC Simulations, Syscall Pipeline & Interrupt Abstraction    │
+│                       UPCOMING PHASES (12–15)                          │
 │ Phase 12: Advanced Memory Extensions (Working-Set & Thrashing Lab)     │
 │ Phase 13: Empirical Trace Ingestion & Burst-Time Prediction            │
 │ Phase 14: Cross-Module Unified Orchestration & Full Benchmarks         │
@@ -49,8 +48,8 @@ KernelLens is structured into 16 discrete, sequentially verifiable engineering p
 | **Phase 8** | **Workload Gen, Comparator & Replay** | Native C++ multi-policy `ComparisonEngine` (CPU, Disk, Memory) with delta metrics & badges; `WorkloadGenerator` distributions (Uniform, Exponential, Bimodal, Normal) & JSON I/O; `ReplayEngine` with periodic snapshots ($K=50$) & binary search time-travel scrubbing. | **Complete** | 39/39 C++, 27/27 UI | [`phase-8.md`](phase-reports/phase-8.md) |
 | **Phase 9** | **Advanced Dynamic Memory** | Binary Buddy Allocator ($2^k$ blocks, XOR buddy coalescing), Contiguous Allocation policies (First-Fit, Best-Fit, Worst-Fit), fragmentation accounting ($I_{\text{frag}}, E_{\text{frag}}, \Phi_{\text{ext}}$), memory compaction simulation, allocator comparator. | **Complete** | 52/52 C++, 27/27 UI | [`phase-9.md`](phase-reports/phase-9.md) |
 | **Phase 10** | **Simulated Filesystem** | Ext2-style hierarchical inode tree, Contiguous/Linked/Indexed allocation strategies, directories, permissions (rwx/mode/uid/gid), capacity limits, write-ahead journaling & crash recovery (redo/undo). | **Complete** | 60/60 C++, 27/27 UI | [`phase-10.md`](phase-reports/phase-10.md) |
-| **Phase 11** | **IPC & Syscall Abstraction** | Message queues, UNIX-style pipes, shared memory segment simulator, kernel mode / user mode privilege transitions, interrupt vector table. | *Next Phase* | Planned | `phase-11.md` |
-| **Phase 12** | **Advanced Memory Extensions** | Working-set page replacement model, page fault frequency (PFF) thrashing detector, NUMA / multicore CPU scheduling & affinity. | *Planned* | Planned | `phase-12.md` |
+| **Phase 11** | **IPC & Syscall Abstraction** | Message queues, UNIX-style pipes, shared memory segment simulator with concurrent write race detection, kernel mode / user mode privilege transitions (Trap 0x80), 256-vector IVT with nested priority preemption. | **Complete** | 77/77 C++, 27/27 UI | [`phase-11.md`](phase-reports/phase-11.md) |
+| **Phase 12** | **Advanced Memory Extensions** | Working-set page replacement model, page fault frequency (PFF) thrashing detector, NUMA / multicore CPU scheduling & affinity. | *Next Phase* | Planned | `phase-12.md` |
 | **Phase 13** | **Trace Ingestion & Burst Predictor** | Real-world trace ingestion (e.g., Google Cluster Trace / Linux `/proc` sampling), exponential smoothing ($\tau_{n+1} = \alpha t_n + (1-\alpha)\tau_n$) burst prediction experiments. | *Planned* | Planned | `phase-13.md` |
 | **Phase 14** | **Cross-Module Unified Laboratory** | Full engine orchestration, comprehensive cross-module golden test matrix, end-to-end integration verification, automated JSON validator. | *Planned* | Planned | `phase-14.md` |
 | **Phase 15** | **Documentation & Release Readiness** | Final course thesis, LaTeX lab report compilation, faculty demonstration script rehearsal, release packaging. | *Planned* | Planned | `phase-15.md` |
